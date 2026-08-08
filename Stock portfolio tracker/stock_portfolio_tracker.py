@@ -27,11 +27,10 @@ root = tk.Tk()
 root.title("Stock Portfolio Tracker")
 root.geometry("850x750")
 root.resizable(False, False)
-root.configure(bg="#ffd6e7")
 
 
 # ============================================================
-# ANIMATED PINK BACKGROUND
+# ANIMATED BACKGROUND
 # ============================================================
 
 canvas = tk.Canvas(
@@ -42,17 +41,22 @@ canvas = tk.Canvas(
     highlightthickness=0
 )
 
-canvas.place(x=0, y=0)
+canvas.pack(fill="both", expand=True)
 
-circles = []
 
-for i in range(20):
+# Store bubble information
+bubbles = []
 
-    x = 20 + (i * 53) % 820
-    y = 50 + (i * 97) % 700
-    size = 15 + (i % 4) * 8
+for i in range(25):
 
-    circle = canvas.create_oval(
+    x = (i * 83) % 850
+    y = (i * 137) % 750
+
+    size = 15 + (i % 5) * 8
+
+    speed = 0.5 + (i % 4) * 0.25
+
+    bubble = canvas.create_oval(
         x,
         y,
         x + size,
@@ -61,30 +65,34 @@ for i in range(20):
         outline=""
     )
 
-    circles.append({
-        "id": circle,
+    bubbles.append({
+        "id": bubble,
         "x": x,
         "y": y,
         "size": size,
-        "speed": 0.5 + (i % 3) * 0.3
+        "speed": speed
     })
 
 
+# ============================================================
+# BACKGROUND ANIMATION
+# ============================================================
+
 def animate_background():
 
-    for circle in circles:
+    for bubble in bubbles:
 
-        circle["y"] -= circle["speed"]
+        bubble["y"] -= bubble["speed"]
 
-        if circle["y"] < -30:
-            circle["y"] = 750
+        if bubble["y"] < -50:
+            bubble["y"] = 750
 
         canvas.coords(
-            circle["id"],
-            circle["x"],
-            circle["y"],
-            circle["x"] + circle["size"],
-            circle["y"] + circle["size"]
+            bubble["id"],
+            bubble["x"],
+            bubble["y"],
+            bubble["x"] + bubble["size"],
+            bubble["y"] + bubble["size"]
         )
 
     root.after(30, animate_background)
@@ -94,521 +102,654 @@ animate_background()
 
 
 # ============================================================
-# MAIN FRAME
+# WELCOME SCREEN
 # ============================================================
 
-main_frame = tk.Frame(
+welcome_frame = tk.Frame(
     root,
-    bg="#fff5f9"
-)
-
-main_frame.place(
-    relx=0.5,
-    rely=0.5,
-    anchor="center",
+    bg="#fff5f9",
     width=700,
     height=690
 )
 
+welcome_frame.place(
+    relx=0.5,
+    rely=0.5,
+    anchor="center"
+)
 
-# ============================================================
-# TITLE
-# ============================================================
+welcome_frame.pack_propagate(False)
 
-title = tk.Label(
-    main_frame,
-    text="📈 STOCK PORTFOLIO TRACKER",
-    font=("Arial", 24, "bold"),
+
+welcome_label = tk.Label(
+    welcome_frame,
+    text="",
+    font=("Arial", 28, "bold"),
     bg="#fff5f9",
     fg="#d63384"
 )
 
-title.pack(pady=(20, 3))
-
-
-subtitle = tk.Label(
-    main_frame,
-    text="Track your investments easily",
-    font=("Arial", 11),
-    bg="#fff5f9",
-    fg="#777777"
-)
-
-subtitle.pack()
-
-
-# ============================================================
-# NAME
-# ============================================================
-
-name_label = tk.Label(
-    main_frame,
-    text="👤 Enter Your First Name",
-    font=("Arial", 13, "bold"),
-    bg="#fff5f9",
-    fg="#333333"
-)
-
-name_label.pack(pady=(18, 5))
-
-
-name_entry = tk.Entry(
-    main_frame,
-    font=("Arial", 13),
-    justify="center",
-    width=35,
-    bd=2,
-    relief="solid"
-)
-
-name_entry.pack(ipady=7)
-
-
-# ============================================================
-# STOCK SYMBOL
-# ============================================================
-
-stock_label = tk.Label(
-    main_frame,
-    text="📊 Enter Stock Symbol",
-    font=("Arial", 13, "bold"),
-    bg="#fff5f9",
-    fg="#333333"
-)
-
-stock_label.pack(pady=(15, 5))
-
-
-stock_entry = tk.Entry(
-    main_frame,
-    font=("Arial", 13),
-    justify="center",
-    width=35,
-    bd=2,
-    relief="solid"
-)
-
-stock_entry.pack(ipady=7)
-
-
-# ============================================================
-# QUANTITY
-# ============================================================
-
-quantity_label = tk.Label(
-    main_frame,
-    text="🔢 Enter Quantity",
-    font=("Arial", 13, "bold"),
-    bg="#fff5f9",
-    fg="#333333"
-)
-
-quantity_label.pack(pady=(15, 5))
-
-
-quantity_entry = tk.Entry(
-    main_frame,
-    font=("Arial", 13),
-    justify="center",
-    width=35,
-    bd=2,
-    relief="solid"
-)
-
-quantity_entry.pack(ipady=7)
-
-
-# ============================================================
-# RESULT FRAME
-# ============================================================
-
-result_frame = tk.Frame(
-    main_frame,
-    bg="#ffe6f0",
-    width=620,
-    height=260
-)
-
-result_frame.pack(pady=12)
-
-result_frame.pack_propagate(False)
-
-
-result_label = tk.Label(
-    result_frame,
-    text="Enter your details and add a stock.",
-    font=("Arial", 11),
-    bg="#ffe6f0",
-    fg="#333333",
-    justify="left",
-    anchor="nw"
-)
-
-result_label.pack(
-    padx=18,
-    pady=15,
-    fill="both",
-    expand=True
+welcome_label.place(
+    relx=0.5,
+    rely=0.5,
+    anchor="center"
 )
 
 
 # ============================================================
-# ANIMATED TEXT
+# WELCOME TYPING ANIMATION
 # ============================================================
 
-animation_id = None
-
-
-def animate_text(text, index=0):
-
-    global animation_id
+def welcome_animation(
+    text="WELCOME TO THE PORTFOLIO",
+    index=0
+):
 
     if index <= len(text):
 
-        result_label.config(text=text[:index])
+        welcome_label.config(
+            text=text[:index]
+        )
 
-        animation_id = root.after(
-            15,
-            lambda: animate_text(text, index + 1)
+        root.after(
+            80,
+            lambda: welcome_animation(
+                text,
+                index + 1
+            )
+        )
+
+    else:
+
+        root.after(
+            1500,
+            show_main_screen
         )
 
 
 # ============================================================
-# ADD STOCK
+# SHOW MAIN SCREEN
 # ============================================================
 
-def add_stock():
+def show_main_screen():
 
-    name = name_entry.get().strip()
-    stock = stock_entry.get().upper().strip()
-    quantity_text = quantity_entry.get().strip()
+    welcome_frame.destroy()
 
-    # -------------------------
-    # CHECK NAME
-    # -------------------------
+    create_main_screen()
 
-    if name == "":
 
-        messagebox.showwarning(
-            "Missing Name",
-            "Please enter your first name."
-        )
+# ============================================================
+# MAIN PORTFOLIO SCREEN
+# ============================================================
 
-        name_entry.focus()
-        return
+def create_main_screen():
 
-    # -------------------------
-    # CHECK STOCK
-    # -------------------------
-
-    if stock == "":
-
-        messagebox.showwarning(
-            "Missing Stock",
-            "Please enter a stock symbol."
-        )
-
-        stock_entry.focus()
-        return
-
-    # -------------------------
-    # CHECK STOCK AVAILABILITY
-    # -------------------------
-
-    if stock not in stock_prices:
-
-        messagebox.showerror(
-            "Invalid Stock",
-            "Stock not available.\n\n"
-            "Please choose from:\n\n"
-            "AAPL, TSLA, GOOGL, MSFT,\n"
-            "AMZN, META, NFLX"
-        )
-
-        stock_entry.focus()
-        return
-
-    # -------------------------
-    # CHECK QUANTITY
-    # -------------------------
-
-    try:
-
-        quantity = int(quantity_text)
-
-        if quantity <= 0:
-            raise ValueError
-
-    except ValueError:
-
-        messagebox.showerror(
-            "Invalid Quantity",
-            "Please enter a valid quantity greater than 0."
-        )
-
-        quantity_entry.focus()
-        return
-
-    # -------------------------
-    # ADD TO PORTFOLIO
-    # -------------------------
-
-    portfolio[stock] = portfolio.get(stock, 0) + quantity
-
-    price = stock_prices[stock]
-
-    value = price * quantity
-
-    # -------------------------
-    # AVAILABLE STOCKS
-    # -------------------------
-
-    available_stocks = ""
-
-    for s, p in stock_prices.items():
-
-        available_stocks += f"{s:<7} → ${p}\n"
-
-    # -------------------------
-    # RESULT
-    # -------------------------
-
-    message = (
-        f"Hello {name}! 👋\n\n"
-        f"✨ STOCK ADDED SUCCESSFULLY ✨\n\n"
-        f"Stock       : {stock}\n"
-        f"Quantity    : {quantity}\n"
-        f"Price       : ${price}\n"
-        f"Investment  : ${value}\n\n"
-        f"━━━━━━━━━━━━━━━━━━━━━━━━\n"
-        f"📈 AVAILABLE STOCKS\n"
-        f"━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-        f"{available_stocks}"
+    main_frame = tk.Frame(
+        root,
+        bg="#fff5f9",
+        width=700,
+        height=690
     )
 
-    animate_text(message)
-
-    # Clear inputs
-
-    stock_entry.delete(0, tk.END)
-    quantity_entry.delete(0, tk.END)
-
-    stock_entry.focus()
-
-
-# ============================================================
-# SHOW PORTFOLIO
-# ============================================================
-
-def show_portfolio():
-
-    if not portfolio:
-
-        messagebox.showinfo(
-            "Portfolio",
-            "No stocks have been added yet."
-        )
-
-        return
-
-    total_investment = 0
-
-    output = (
-        "📊 YOUR PORTFOLIO\n"
-        "━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+    main_frame.place(
+        relx=0.5,
+        rely=0.5,
+        anchor="center"
     )
 
-    for stock, quantity in portfolio.items():
+    main_frame.pack_propagate(False)
+
+
+    # ========================================================
+    # TITLE
+    # ========================================================
+
+    title = tk.Label(
+        main_frame,
+        text="STOCK PORTFOLIO TRACKER",
+        font=("Arial", 24, "bold"),
+        bg="#fff5f9",
+        fg="#d63384"
+    )
+
+    title.pack(pady=(20, 3))
+
+
+    subtitle = tk.Label(
+        main_frame,
+        text="Manage your stock investments easily",
+        font=("Arial", 11),
+        bg="#fff5f9",
+        fg="#777777"
+    )
+
+    subtitle.pack(pady=(0, 12))
+
+
+    # ========================================================
+    # NAME
+    # ========================================================
+
+    name_label = tk.Label(
+        main_frame,
+        text="Enter Your Name",
+        font=("Arial", 13, "bold"),
+        bg="#fff5f9",
+        fg="#333333"
+    )
+
+    name_label.pack(pady=(5, 4))
+
+
+    name_entry = tk.Entry(
+        main_frame,
+        font=("Arial", 13),
+        justify="center",
+        width=35,
+        bd=2,
+        relief="solid"
+    )
+
+    name_entry.pack(ipady=7)
+
+
+    # ========================================================
+    # STOCK SYMBOL
+    # ========================================================
+
+    stock_label = tk.Label(
+        main_frame,
+        text="Enter Stock Symbol",
+        font=("Arial", 13, "bold"),
+        bg="#fff5f9",
+        fg="#333333"
+    )
+
+    stock_label.pack(pady=(12, 4))
+
+
+    stock_entry = tk.Entry(
+        main_frame,
+        font=("Arial", 13),
+        justify="center",
+        width=35,
+        bd=2,
+        relief="solid"
+    )
+
+    stock_entry.pack(ipady=7)
+
+
+    stock_example = tk.Label(
+        main_frame,
+        text="Example: AAPL, TSLA, GOOGL, MSFT",
+        font=("Arial", 9, "italic"),
+        bg="#fff5f9",
+        fg="#999999"
+    )
+
+    stock_example.pack(pady=(2, 0))
+
+
+    # ========================================================
+    # QUANTITY
+    # ========================================================
+
+    quantity_label = tk.Label(
+        main_frame,
+        text="Enter Quantity",
+        font=("Arial", 13, "bold"),
+        bg="#fff5f9",
+        fg="#333333"
+    )
+
+    quantity_label.pack(pady=(10, 4))
+
+
+    quantity_entry = tk.Entry(
+        main_frame,
+        font=("Arial", 13),
+        justify="center",
+        width=35,
+        bd=2,
+        relief="solid"
+    )
+
+    quantity_entry.pack(ipady=7)
+
+
+    quantity_example = tk.Label(
+        main_frame,
+        text="Example: 5",
+        font=("Arial", 9, "italic"),
+        bg="#fff5f9",
+        fg="#999999"
+    )
+
+    quantity_example.pack(pady=(2, 0))
+
+
+    # ========================================================
+    # RESULT BOX
+    # ========================================================
+
+    result_frame = tk.Frame(
+        main_frame,
+        bg="#ffe6f0",
+        width=620,
+        height=250
+    )
+
+    result_frame.pack(pady=12)
+
+    result_frame.pack_propagate(False)
+
+
+    result_label = tk.Label(
+        result_frame,
+        text="Enter your details and click Add Stock.",
+        font=("Arial", 10),
+        bg="#ffe6f0",
+        fg="#333333",
+        justify="left",
+        anchor="nw"
+    )
+
+    result_label.pack(
+        padx=18,
+        pady=12,
+        fill="both",
+        expand=True
+    )
+
+
+    # ========================================================
+    # RESULT TEXT ANIMATION
+    # ========================================================
+
+    def animate_text(text, index=0):
+
+        if index <= len(text):
+
+            result_label.config(
+                text=text[:index]
+            )
+
+            root.after(
+                15,
+                lambda: animate_text(
+                    text,
+                    index + 1
+                )
+            )
+
+
+    # ========================================================
+    # ADD STOCK
+    # ========================================================
+
+    def add_stock():
+
+        name = name_entry.get().strip()
+
+        stock = stock_entry.get().upper().strip()
+
+        quantity_text = quantity_entry.get().strip()
+
+
+        # CHECK NAME
+
+        if name == "":
+
+            messagebox.showwarning(
+                "Missing Name",
+                "Please enter your name."
+            )
+
+            name_entry.focus()
+
+            return
+
+
+        # CHECK STOCK
+
+        if stock == "":
+
+            messagebox.showwarning(
+                "Missing Stock",
+                "Please enter a stock symbol."
+            )
+
+            stock_entry.focus()
+
+            return
+
+
+        # CHECK STOCK AVAILABILITY
+
+        if stock not in stock_prices:
+
+            messagebox.showerror(
+                "Invalid Stock",
+                "Stock not available.\n\n"
+                "Please choose from:\n\n"
+                "AAPL, TSLA, GOOGL, MSFT,\n"
+                "AMZN, META, NFLX"
+            )
+
+            stock_entry.focus()
+
+            return
+
+
+        # CHECK QUANTITY
+
+        try:
+
+            quantity = int(quantity_text)
+
+            if quantity <= 0:
+
+                raise ValueError
+
+        except ValueError:
+
+            messagebox.showerror(
+                "Invalid Quantity",
+                "Please enter a valid quantity greater than 0."
+            )
+
+            quantity_entry.focus()
+
+            return
+
+
+        # ====================================================
+        # CALCULATE
+        # ====================================================
 
         price = stock_prices[stock]
 
         value = price * quantity
 
-        total_investment += value
 
-        output += (
-            f"📌 {stock}\n"
-            f"   Quantity : {quantity}\n"
-            f"   Price    : ${price}\n"
-            f"   Value    : ${value}\n\n"
+        # ADD TO PORTFOLIO
+
+        portfolio[stock] = (
+            portfolio.get(stock, 0)
+            + quantity
         )
 
-    output += (
-        "━━━━━━━━━━━━━━━━━━━━━━━━\n"
-        f"💰 TOTAL INVESTMENT: ${total_investment}"
-    )
 
-    animate_text(output)
+        # ====================================================
+        # TOTAL INVESTMENT
+        # ====================================================
 
+        total_investment = 0
 
-# ============================================================
-# SAVE PORTFOLIO
-# ============================================================
+        for s, q in portfolio.items():
 
-def save_portfolio():
-
-    if not portfolio:
-
-        messagebox.showwarning(
-            "Nothing to Save",
-            "Please add at least one stock first."
-        )
-
-        return
-
-    total_investment = 0
-
-    name = name_entry.get().strip()
-
-    with open("stock_portfolio.txt", "w") as file:
-
-        file.write("STOCK PORTFOLIO TRACKER\n")
-        file.write("=" * 45 + "\n")
-
-        file.write(f"Investor: {name}\n")
-
-        file.write(
-            "Date: "
-            + datetime.now().strftime("%d-%m-%Y %H:%M")
-            + "\n\n"
-        )
-
-        for stock, quantity in portfolio.items():
-
-            price = stock_prices[stock]
-
-            value = price * quantity
-
-            total_investment += value
-
-            file.write(
-                f"{stock} - "
-                f"Quantity: {quantity}, "
-                f"Price: ${price}, "
-                f"Value: ${value}\n"
+            total_investment += (
+                stock_prices[s] * q
             )
 
-        file.write("\n")
-        file.write("=" * 45 + "\n")
 
-        file.write(
-            f"Total Investment: ${total_investment}\n"
+        # ====================================================
+        # AVAILABLE STOCKS
+        # ====================================================
+
+        available_stocks = ""
+
+        for s, p in stock_prices.items():
+
+            available_stocks += (
+                f"{s:<7}  ${p}\n"
+            )
+
+
+        # ====================================================
+        # FULL RESULT
+        # ====================================================
+
+        message = (
+            "STOCK ADDED SUCCESSFULLY!\n"
+            "================================\n\n"
+            f"Investor Name : {name}\n\n"
+            f"Stock         : {stock}\n"
+            f"Quantity      : {quantity}\n"
+            f"Price         : ${price}\n"
+            f"Investment    : ${value}\n\n"
+            "================================\n"
+            f"TOTAL INVESTMENT : ${total_investment}\n\n"
+            "AVAILABLE STOCKS\n"
+            "================================\n"
+            f"{available_stocks}"
         )
 
-    messagebox.showinfo(
-        "Saved Successfully",
-        "✅ Portfolio saved successfully!\n\n"
-        "File name:\n"
-        "stock_portfolio.txt"
+
+        # ANIMATE RESULT
+
+        animate_text(message)
+
+
+        # CLEAR INPUTS
+
+        stock_entry.delete(
+            0,
+            tk.END
+        )
+
+        quantity_entry.delete(
+            0,
+            tk.END
+        )
+
+        stock_entry.focus()
+
+
+    # ========================================================
+    # SAVE PORTFOLIO
+    # ========================================================
+
+    def save_portfolio():
+
+        if not portfolio:
+
+            messagebox.showwarning(
+                "Nothing to Save",
+                "Please add at least one stock first."
+            )
+
+            return
+
+
+        name = name_entry.get().strip()
+
+        total_investment = 0
+
+
+        with open(
+            "stock_portfolio.txt",
+            "w"
+        ) as file:
+
+            file.write(
+                "STOCK PORTFOLIO TRACKER\n"
+            )
+
+            file.write(
+                "=" * 45
+                + "\n\n"
+            )
+
+            file.write(
+                f"Investor Name: {name}\n"
+            )
+
+            file.write(
+                "Date: "
+                + datetime.now().strftime(
+                    "%d-%m-%Y %H:%M"
+                )
+                + "\n\n"
+            )
+
+
+            for stock, quantity in portfolio.items():
+
+                price = stock_prices[stock]
+
+                value = price * quantity
+
+                total_investment += value
+
+
+                file.write(
+                    f"Stock       : {stock}\n"
+                    f"Quantity    : {quantity}\n"
+                    f"Price       : ${price}\n"
+                    f"Investment  : ${value}\n"
+                )
+
+                file.write(
+                    "-" * 35
+                    + "\n"
+                )
+
+
+            file.write(
+                "\n"
+                + "=" * 45
+                + "\n"
+            )
+
+            file.write(
+                f"TOTAL INVESTMENT: ${total_investment}\n"
+            )
+
+
+        # ====================================================
+        # SUCCESS MESSAGE
+        # ====================================================
+
+        success_message = (
+            "PORTFOLIO SAVED SUCCESSFULLY!\n\n"
+            "================================\n\n"
+            f"Investor : {name}\n\n"
+            f"Total Investment : ${total_investment}\n\n"
+            "File saved as:\n"
+            "stock_portfolio.txt"
+        )
+
+
+        animate_text(
+            success_message
+        )
+
+
+        root.after(
+            1500,
+            lambda: messagebox.showinfo(
+                "Success",
+                "Portfolio saved successfully!\n\n"
+                "File: stock_portfolio.txt"
+            )
+        )
+
+
+    # ========================================================
+    # BUTTON FRAME
+    # ========================================================
+
+    button_frame = tk.Frame(
+        main_frame,
+        bg="#fff5f9"
+    )
+
+    button_frame.pack(pady=3)
+
+
+    # ========================================================
+    # ADD STOCK BUTTON
+    # ========================================================
+
+    add_button = tk.Button(
+        button_frame,
+        text="Add Stock",
+        font=("Arial", 11, "bold"),
+        bg="#d63384",
+        fg="white",
+        activebackground="#b82b70",
+        activeforeground="white",
+        width=15,
+        bd=0,
+        cursor="hand2",
+        command=add_stock
+    )
+
+    add_button.grid(
+        row=0,
+        column=0,
+        padx=7
     )
 
 
-# ============================================================
-# BUTTON FRAME
-# ============================================================
+    # ========================================================
+    # SAVE BUTTON
+    # ========================================================
 
-button_frame = tk.Frame(
-    main_frame,
-    bg="#fff5f9"
-)
+    save_button = tk.Button(
+        button_frame,
+        text="Save Portfolio",
+        font=("Arial", 11, "bold"),
+        bg="#c2185b",
+        fg="white",
+        activebackground="#a3154d",
+        activeforeground="white",
+        width=15,
+        bd=0,
+        cursor="hand2",
+        command=save_portfolio
+    )
 
-button_frame.pack(pady=5)
-
-
-# ============================================================
-# ADD STOCK BUTTON
-# ============================================================
-
-add_button = tk.Button(
-    button_frame,
-    text="➕ Add Stock",
-    font=("Arial", 11, "bold"),
-    bg="#d63384",
-    fg="white",
-    activebackground="#b82b70",
-    activeforeground="white",
-    width=15,
-    bd=0,
-    cursor="hand2",
-    command=add_stock
-)
-
-add_button.grid(
-    row=0,
-    column=0,
-    padx=5
-)
+    save_button.grid(
+        row=0,
+        column=1,
+        padx=7
+    )
 
 
-# ============================================================
-# SHOW PORTFOLIO BUTTON
-# ============================================================
+    # ========================================================
+    # FOOTER
+    # ========================================================
 
-portfolio_button = tk.Button(
-    button_frame,
-    text="📊 Show Portfolio",
-    font=("Arial", 11, "bold"),
-    bg="#ff69a4",
-    fg="white",
-    activebackground="#e85b92",
-    activeforeground="white",
-    width=15,
-    bd=0,
-    cursor="hand2",
-    command=show_portfolio
-)
+    footer = tk.Label(
+        main_frame,
+        text="Smart • Simple • Fast",
+        font=("Arial", 9, "italic"),
+        bg="#fff5f9",
+        fg="#999999"
+    )
 
-portfolio_button.grid(
-    row=0,
-    column=1,
-    padx=5
-)
+    footer.pack(pady=4)
+
+
+    # ========================================================
+    # START WITH NAME
+    # ========================================================
+
+    name_entry.focus()
 
 
 # ============================================================
-# SAVE BUTTON
+# START WELCOME ANIMATION
 # ============================================================
 
-save_button = tk.Button(
-    button_frame,
-    text="💾 Save",
-    font=("Arial", 11, "bold"),
-    bg="#c2185b",
-    fg="white",
-    activebackground="#a3154d",
-    activeforeground="white",
-    width=12,
-    bd=0,
-    cursor="hand2",
-    command=save_portfolio
-)
-
-save_button.grid(
-    row=0,
-    column=2,
-    padx=5
-)
+welcome_animation()
 
 
 # ============================================================
-# FOOTER
+# START PROGRAM
 # ============================================================
-
-footer = tk.Label(
-    main_frame,
-    text="💗 Smart • Simple • Fast",
-    font=("Arial", 9, "italic"),
-    bg="#fff5f9",
-    fg="#999999"
-)
-
-footer.pack(pady=3)
-
-
-# ============================================================
-# START
-# ============================================================
-
-name_entry.focus()
 
 root.mainloop()

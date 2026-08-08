@@ -1,0 +1,14 @@
+STOCK PORTFOLIO TRACKER
+=============================================
+
+Investor Name: saraswti
+Date: 08-08-2026 21:53
+
+Stock       : AAPL
+Quantity    : 10
+Price       : $180
+Investment  : $1800
+-----------------------------------
+
+=============================================
+TOTAL INVESTMENT: $1800
