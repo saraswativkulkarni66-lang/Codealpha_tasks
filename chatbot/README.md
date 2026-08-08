@@ -1,25 +1,23 @@
-# Codealpha_tasks1(BASIC CHATBOT)
+<img width="476" height="150" alt="image" src="https://github.com/user-attachments/assets/ef9219c9-cddd-456e-a9f7-fd3877cdd1b0" /># Codealpha_tasks3(BASIC CHATBOT)
 # Chatbot
 
-## Project Description
+**Project Description**
 
 This project is a simple Python-based chatbot developed as part of my CodeAlpha internship.
 
 The chatbot provides responses to basic user messages such as greetings, asking how it is, and saying goodbye. It uses predefined responses and a graphical user interface created with Python Tkinter.
 
-## Features
-
+**Features**
 - Simple and user-friendly chatbot interface
 - Responds to basic user messages
 - Interactive GUI using Tkinter
 - Easy-to-understand Python code
 - Real-time conversation between user and chatbot
 
-## Technologies Used
-
-- Python
-- Tkinter
-- Datetime
+**Technologies Used**
+1.Python
+2.Tkinter
+3.Datetime
 
 ## Key Concepts Used
 
