@@ -1,4 +1,3 @@
-<img width="476" height="150" alt="image" src="https://github.com/user-attachments/assets/ef9219c9-cddd-456e-a9f7-fd3877cdd1b0" /># Codealpha_tasks3(BASIC CHATBOT)
 # Chatbot
 
 **Project Description**
