@@ -1,4 +1,4 @@
-\# Stock Portfolio Tracker
+# TASK 3 (Stock Portfolio Tracker)
 
 
 
@@ -82,5 +82,5 @@ Run the following command in the terminal:
 
 ```bash
 
-python stock\_portfolio\_tracker.py
+python stock_portfolio_tracker.py
 
