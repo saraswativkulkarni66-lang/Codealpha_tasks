@@ -1,451 +1,794 @@
 import tkinter as tk
 from datetime import datetime
 import random
-import re
 
 # ============================================================
-# MAIN WINDOW
+# SMART CHATBOT
 # ============================================================
 
 root = tk.Tk()
-root.title("🤖 Smart Chatbot")
-root.geometry("650x650")
-root.resizable(False, False)
+root.title("SMART CHATBOT")
+root.geometry("1100x720")
+root.minsize(950, 650)
+root.configure(bg="#070D16")
+
 
 # ============================================================
 # COLORS
 # ============================================================
 
-BG = "#EAF2F8"
-HEADER = "#1565C0"
-USER_COLOR = "#1976D2"
-BOT_COLOR = "#43A047"
+BG = "#070D16"
+SIDEBAR = "#0B1421"
+PANEL = "#101B2A"
+CARD = "#162435"
+CARD2 = "#1B2B3D"
+
+BLUE = "#0797FF"
+LIGHT_BLUE = "#4DB8FF"
+CYAN = "#00D9FF"
+
 WHITE = "#FFFFFF"
-DARK = "#263238"
-
-root.configure(bg=BG)
-
-# ============================================================
-# USER DATA
-# ============================================================
-
-user_name = None
+TEXT = "#DDE9F5"
+MUTED = "#8EA3B8"
 
 
 # ============================================================
-# TIME
+# CURRENT SERVICE
 # ============================================================
 
-def get_time():
-    return datetime.now().strftime("%I:%M %p")
+current_service = "General Chat"
 
 
 # ============================================================
-# ADD MESSAGE
+# DATE AND TIME
+# ============================================================
+
+def get_datetime():
+
+    now = datetime.now()
+
+    date = now.strftime("%d %B %Y")
+    day = now.strftime("%A")
+    time = now.strftime("%I:%M:%S %p")
+
+    return date, day, time
+
+
+def update_clock():
+
+    date, day, time = get_datetime()
+
+    clock_label.config(
+        text=f"📅 {date}     •     {day}     •     🕐 {time}"
+    )
+
+    root.after(1000, update_clock)
+
+
+# ============================================================
+# ROBOT DESIGN
+# ============================================================
+
+def draw_robot(canvas):
+
+    canvas.delete("all")
+
+    # Outer glow
+    canvas.create_oval(
+        25, 20, 255, 250,
+        outline="#075B9E",
+        width=3
+    )
+
+    canvas.create_oval(
+        45, 40, 235, 230,
+        outline="#0A3B63",
+        width=2
+    )
+
+    # Antenna
+    canvas.create_line(
+        140, 55,
+        140, 25,
+        fill=CYAN,
+        width=4
+    )
+
+    canvas.create_oval(
+        132, 17,
+        148, 33,
+        fill=CYAN,
+        outline=""
+    )
+
+    # Robot head
+    canvas.create_rectangle(
+        72, 65,
+        208, 165,
+        fill="#D9E4EE",
+        outline="#8DA5B8",
+        width=3
+    )
+
+    # Side parts of head
+    canvas.create_oval(
+        62, 65,
+        88, 165,
+        fill="#D9E4EE",
+        outline="#8DA5B8",
+        width=3
+    )
+
+    canvas.create_oval(
+        192, 65,
+        218, 165,
+        fill="#D9E4EE",
+        outline="#8DA5B8",
+        width=3
+    )
+
+    # Face screen
+    canvas.create_rectangle(
+        78, 75,
+        202, 155,
+        fill="#07111C",
+        outline="#4C718C",
+        width=2
+    )
+
+    # Eyes
+    canvas.create_oval(
+        96, 96,
+        120, 120,
+        fill=CYAN,
+        outline=""
+    )
+
+    canvas.create_oval(
+        160, 96,
+        184, 120,
+        fill=CYAN,
+        outline=""
+    )
+
+    # Mouth
+    canvas.create_line(
+        125, 132,
+        155, 132,
+        fill=LIGHT_BLUE,
+        width=4
+    )
+
+    # Body
+    canvas.create_rectangle(
+        90, 170,
+        190, 235,
+        fill="#C9D7E2",
+        outline="#8DA5B8",
+        width=3
+    )
+
+    # Chest light
+    canvas.create_oval(
+        130, 190,
+        150, 210,
+        fill=CYAN,
+        outline=""
+    )
+
+    # Left arm
+    canvas.create_line(
+        90, 185,
+        48, 215,
+        fill="#C9D7E2",
+        width=16
+    )
+
+    # Right arm
+    canvas.create_line(
+        190, 185,
+        230, 145,
+        fill="#C9D7E2",
+        width=16
+    )
+
+    # Hand
+    canvas.create_oval(
+        220, 130,
+        245, 155,
+        fill="#E4EDF3",
+        outline="#8DA5B8"
+    )
+
+
+# ============================================================
+# ADD CHAT MESSAGE
 # ============================================================
 
 def add_message(sender, message):
 
     chat.config(state=tk.NORMAL)
 
-    time = get_time()
+    date, day, time = get_datetime()
 
     if sender == "You":
 
         chat.insert(
             tk.END,
-            f"\n  You  •  {time}\n",
-            "user_name"
+            f"\n👤 You   •   {time}\n",
+            "user_header"
         )
 
         chat.insert(
             tk.END,
-            f"  {message}\n",
-            "user_msg"
+            f"{message}\n",
+            "user_message"
         )
 
     else:
 
         chat.insert(
             tk.END,
-            f"\n  🤖 Bot  •  {time}\n",
-            "bot_name"
+            f"\n🤖 SmartBot   •   {time}\n",
+            "bot_header"
         )
 
         chat.insert(
             tk.END,
-            f"  {message}\n",
-            "bot_msg"
+            f"{message}\n",
+            "bot_message"
         )
 
     chat.config(state=tk.DISABLED)
+
     chat.see(tk.END)
 
 
 # ============================================================
-# DETECT NAME
+# GENERAL CHAT
 # ============================================================
 
-def detect_name(text):
+def general_response(user):
 
-    text = text.strip()
+    user = user.lower().strip()
 
-    # My name is Saraswati
-    match = re.match(
-        r"^my name is\s+([A-Za-z]+)$",
-        text,
-        re.IGNORECASE
-    )
+    # Name
+    if (
+        "my name is" in user
+        or "i am" in user
+        or "i'm" in user
+    ):
 
-    if match:
-        return match.group(1).capitalize()
+        return (
+            "😊 Nice to meet you!\n"
+            "It's great to know your name."
+        )
 
-    # My name's Saraswati
-    match = re.match(
-        r"^my name's\s+([A-Za-z]+)$",
-        text,
-        re.IGNORECASE
-    )
+    # What are you doing
+    if (
+        "what are you doing" in user
+        or "what do you do" in user
+    ):
 
-    if match:
-        return match.group(1).capitalize()
+        return (
+            "🤖 I'm SmartBot!\n\n"
+            "I'm chatting with you, answering questions, "
+            "helping you learn, and providing useful information."
+        )
 
-    # I am Saraswati
-    match = re.match(
-        r"^i am\s+([A-Za-z]+)$",
-        text,
-        re.IGNORECASE
-    )
+    # Studies
+    if (
+        "studies" in user
+        or "study" in user
+        or "college" in user
+    ):
 
-    if match:
-        return match.group(1).capitalize()
+        return (
+            "📚 That's great!\n\n"
+            "Keep learning and practicing regularly. "
+            "Would you like to learn something interesting about AI? 🤖"
+        )
 
-    # I'm Saraswati
-    match = re.match(
-        r"^i'm\s+([A-Za-z]+)$",
-        text,
-        re.IGNORECASE
-    )
+    # Yes to AI
+    if user in ["yes", "yeah", "sure", "okay", "ok"]:
 
-    if match:
-        return match.group(1).capitalize()
-
-    # I am called Saraswati
-    match = re.match(
-        r"^i am called\s+([A-Za-z]+)$",
-        text,
-        re.IGNORECASE
-    )
-
-    if match:
-        return match.group(1).capitalize()
-
-    # I'm called Saraswati
-    match = re.match(
-        r"^i'm called\s+([A-Za-z]+)$",
-        text,
-        re.IGNORECASE
-    )
-
-    if match:
-        return match.group(1).capitalize()
-
-    # ONLY NAME
-    if re.match(r"^[A-Za-z]+$", text):
-
-        common_words = [
-            "hello",
-            "hi",
-            "hey",
-            "bye",
-            "help",
-            "thanks",
-            "thank",
-            "python",
-            "college",
-            "project",
-            "internship",
-            "ai"
-        ]
-
-        if text.lower() not in common_words:
-            return text.capitalize()
+        return (
+            "🤖 Great!\n\n"
+            "AI stands for Artificial Intelligence. "
+            "It helps computers perform tasks that normally "
+            "require human intelligence.\n\n"
+            "You can learn more about AI in the "
+            "🧠 Smart Q&A section!"
+        )
 
     return None
 
 
 # ============================================================
-# FULL SCREEN PERSONAL WELCOME ANIMATION
+# SMART Q&A
 # ============================================================
 
-def show_personal_animation(name):
+def smart_qa(user):
 
-    animation = tk.Toplevel(root)
+    user = user.lower().strip()
 
-    # Full screen
-    animation.attributes(
-        "-fullscreen",
-        True
-    )
-
-    # Background
-    animation.configure(
-        bg="#0D47A1"
-    )
-
-    # Prevent using main chatbot during animation
-    animation.grab_set()
-
-    # ========================================================
-    # MAIN LABEL
-    # ========================================================
-
-    main_label = tk.Label(
-        animation,
-        text="",
-        font=("Arial", 48, "bold"),
-        bg="#0D47A1",
-        fg="white",
-        wraplength=1200,
-        justify="center"
-    )
-
-    main_label.place(
-        relx=0.5,
-        rely=0.42,
-        anchor="center"
-    )
-
-    # ========================================================
-    # SECOND LABEL
-    # ========================================================
-
-    second_label = tk.Label(
-        animation,
-        text="",
-        font=("Arial", 25, "bold"),
-        bg="#0D47A1",
-        fg="#BBDEFB",
-        wraplength=1100,
-        justify="center"
-    )
-
-    second_label.place(
-        relx=0.5,
-        rely=0.58,
-        anchor="center"
-    )
-
-    # ========================================================
-    # THIRD LABEL
-    # ========================================================
-
-    third_label = tk.Label(
-        animation,
-        text="",
-        font=("Arial", 22),
-        bg="#0D47A1",
-        fg="#E3F2FD",
-        wraplength=1000,
-        justify="center"
-    )
-
-    third_label.place(
-        relx=0.5,
-        rely=0.70,
-        anchor="center"
-    )
-
-    # ========================================================
-    # ANIMATION SEQUENCE
-    # ========================================================
-
-    sequence = [
-
-        # Welcome
-        {
-            "main": f"✨ WELCOME, {name.upper()}! ✨",
-            "second": "💙 Nice to meet you!",
-            "third": "",
-            "time": 3000
-        },
-
-        # Study
-        {
-            "main": "📚 HOW ARE YOUR STUDIES GOING?",
-            "second": "Keep learning and improving every day!",
-            "third": "🎓 Your education is an important step toward your goal.",
-            "time": 3500
-        },
-
-        # Food
-        {
-            "main": "🍕 WHAT DO YOU LIKE TO EAT?",
-            "second": "Enjoy your favorite food!",
-            "third": "😋 A balanced day also includes taking care of yourself.",
-            "time": 3500
-        },
-
-        # Goal
-        {
-            "main": "🎯 WHAT IS YOUR MAIN GOAL?",
-            "second": "Think about what you want to achieve.",
-            "third": "🚀 Your goal gives you a direction to work toward.",
-            "time": 3500
-        },
-
-        # Motivation
-        {
-            "main": "🌟 DON'T SIT IDLE! 🌟",
-            "second": "💡 Learn something new",
-            "third": "",
-            "time": 2200
-        },
-
-        {
-            "main": "💻 DO SOMETHING USEFUL",
-            "second": "Build a small project",
-            "third": "Practice your coding skills!",
-            "time": 2200
-        },
-
-        {
-            "main": "📚 KEEP LEARNING",
-            "second": "Study something useful today",
-            "third": "Even a little progress counts.",
-            "time": 2200
-        },
-
-        {
-            "main": "🚀 IMPROVE YOUR SKILLS",
-            "second": "Practice • Build • Learn",
-            "third": "Your skills grow when you use them.",
-            "time": 2200
-        },
-
-        {
-            "main": "🎯 STAY FOCUSED",
-            "second": "Remember your goal",
-            "third": "Don't give up when things become difficult.",
-            "time": 2200
-        },
-
-        {
-            "main": "✨ KEEP MOVING FORWARD! ✨",
-            "second": f"Believe in yourself, {name}!",
-            "third": "💪 Small steps every day can lead to big progress.",
-            "time": 3500
-        }
-    ]
-
-    # ========================================================
-    # LETTER ANIMATION
-    # ========================================================
-
-    def type_text(
-        text,
-        label,
-        callback,
-        index=0
+    # What is AI
+    if (
+        "what is ai" in user
+        or "tell me about ai" in user
+        or user == "ai"
+        or "artificial intelligence" in user
     ):
 
-        if index <= len(text):
-
-            label.config(
-                text=text[:index]
-            )
-
-            animation.after(
-                45,
-                lambda: type_text(
-                    text,
-                    label,
-                    callback,
-                    index + 1
-                )
-            )
-
-        else:
-
-            animation.after(
-                400,
-                callback
-            )
-
-    # ========================================================
-    # SHOW ONE SEQUENCE
-    # ========================================================
-
-    def show_sequence(index):
-
-        if index >= len(sequence):
-
-            finish_animation()
-
-            return
-
-        item = sequence[index]
-
-        # Clear old text
-        main_label.config(
-            text=""
+        return (
+            "🤖 ABOUT ARTIFICIAL INTELLIGENCE\n\n"
+            "Artificial Intelligence (AI) is a technology "
+            "that enables computers to perform tasks that "
+            "normally require human intelligence.\n\n"
+            "Examples of AI include:\n"
+            "• 🤖 Chatbots\n"
+            "• 🎤 Voice assistants\n"
+            "• 🖼️ Image recognition\n"
+            "• 🌐 Language translation\n"
+            "• 🎬 Recommendation systems\n"
+            "• 📚 AI learning tools"
         )
 
-        second_label.config(
-            text=""
+    # AI assistant
+    if (
+        "ai assistant" in user
+        or "assistant" in user
+    ):
+
+        return (
+            "🤖 WHAT IS AN AI ASSISTANT?\n\n"
+            "An AI assistant is software that can understand "
+            "user questions and provide useful responses.\n\n"
+            "It can help with:\n"
+            "📚 Learning\n"
+            "💻 Coding\n"
+            "📝 Writing\n"
+            "💡 Ideas\n"
+            "🔎 Information\n"
+            "⏰ Planning"
         )
 
-        third_label.config(
-            text=""
+    # How to use AI
+    if (
+        "how to use ai" in user
+        or "use ai" in user
+        or "how can i use ai" in user
+    ):
+
+        return (
+            "💡 HOW TO USE AI\n\n"
+            "1️⃣ Ask clear questions.\n"
+            "2️⃣ Give enough information about your task.\n"
+            "3️⃣ Ask AI to explain difficult topics.\n"
+            "4️⃣ Use AI for learning and brainstorming.\n"
+            "5️⃣ Check important information before relying on it.\n"
+            "6️⃣ Use AI as a learning assistant."
         )
 
-        # ----------------------------------------------------
-        # Type main message
-        # ----------------------------------------------------
+    # Benefits
+    if "benefit" in user:
 
-        def show_second():
-
-            second_label.config(
-                text=item["second"]
-            )
-
-            third_label.config(
-                text=item["third"]
-            )
-
-            animation.after(
-                item["time"],
-                lambda: show_sequence(
-                    index + 1
-                )
-            )
-
-        type_text(
-            item["main"],
-            main_label,
-            show_second
+        return (
+            "✨ BENEFITS OF AI\n\n"
+            "• Saves time\n"
+            "• Helps with learning\n"
+            "• Supports problem solving\n"
+            "• Automates repetitive tasks\n"
+            "• Helps generate ideas\n"
+            "• Provides personalized assistance"
         )
 
-    # ========================================================
-    # FINISH
-    # ========================================================
+    return None
 
-    def finish_animation():
 
-        animation.grab_release()
+# ============================================================
+# INFORMATION FINDER
+# ============================================================
 
-        animation.destroy()
+def information_response(user):
 
-        # Return to chatbot only after everything is finished
-        add_message(
-            "Bot",
-            f"💬 Welcome again, {name}! What would you like to talk about?"
+    user = user.lower().strip()
+
+    # Nature
+    if (
+        "nature" in user
+        or "forest" in user
+        or "environment" in user
+    ):
+
+        return (
+            "🌿 NATURE\n\n"
+            "Nature includes forests, rivers, mountains, "
+            "plants, animals, oceans, and many other natural systems.\n\n"
+            "Protecting nature helps maintain biodiversity "
+            "and a healthy environment."
         )
 
-        entry.focus()
+    # Education
+    if (
+        "education" in user
+        or "learning" in user
+        or "school" in user
+        or "college" in user
+    ):
 
-    # Start sequence
-    show_sequence(0)
+        return (
+            "🎓 EDUCATION\n\n"
+            "Education helps us develop knowledge, skills, "
+            "problem-solving abilities, and confidence.\n\n"
+            "Learning can happen through school, college, "
+            "books, courses, and practical projects."
+        )
+
+    # Books
+    if (
+        "book" in user
+        or "books" in user
+        or "read" in user
+        or "reading" in user
+    ):
+
+        return (
+            "📚 BOOKS & READING\n\n"
+            "Reading can improve vocabulary, knowledge, "
+            "creativity, and understanding.\n\n"
+            "You can explore fiction, science, history, "
+            "technology, biographies, and educational books."
+        )
+
+    # Temples
+    if (
+        "temple" in user
+        or "temples" in user
+    ):
+
+        return (
+            "🛕 TEMPLES\n\n"
+            "Temples can be important places of worship "
+            "and cultural heritage.\n\n"
+            "They can also provide interesting information "
+            "about architecture, history, art, and traditions."
+        )
+
+    # Places
+    if (
+        "place" in user
+        or "places" in user
+        or "travel" in user
+    ):
+
+        return (
+            "🌍 PLACES & TRAVEL\n\n"
+            "Places can be explored based on nature, "
+            "history, culture, architecture, food, and adventure."
+        )
+
+    # General knowledge
+    if (
+        "general knowledge" in user
+        or "knowledge" in user
+    ):
+
+        return (
+            "💡 GENERAL KNOWLEDGE\n\n"
+            "You can ask about science, technology, "
+            "history, geography, nature, education, books, "
+            "culture, and many other topics."
+        )
+
+    return None
+
+
+# ============================================================
+# STUDY HELPER
+# ============================================================
+
+def study_response(user):
+
+    user = user.lower().strip()
+
+    # Study tips
+    if (
+        "study tip" in user
+        or "tips" in user
+        or "how to study" in user
+    ):
+
+        return (
+            "📚 SMART STUDY TIPS\n\n"
+            "1️⃣ Set a small goal for every study session.\n"
+            "2️⃣ Create a realistic timetable.\n"
+            "3️⃣ Study difficult topics with full attention.\n"
+            "4️⃣ Take short breaks.\n"
+            "5️⃣ Revise regularly.\n"
+            "6️⃣ Practice questions.\n"
+            "7️⃣ Keep your study area organized."
+        )
+
+    # Concentration
+    if (
+        "concentration" in user
+        or "focus" in user
+    ):
+
+        return (
+            "🎯 CONCENTRATION TIPS\n\n"
+            "• Study one topic at a time.\n"
+            "• Keep unnecessary notifications away.\n"
+            "• Set a clear goal before studying.\n"
+            "• Use short focused study sessions.\n"
+            "• Take regular breaks."
+        )
+
+    # Timetable
+    if (
+        "timetable" in user
+        or "schedule" in user
+    ):
+
+        return (
+            "🗓️ SIMPLE STUDY TIMETABLE\n\n"
+            "🌅 Morning: Review difficult concepts\n"
+            "📚 Afternoon: Classes / assignments\n"
+            "💻 Evening: Practice or coding\n"
+            "📝 Night: Quick revision\n\n"
+            "Adjust the schedule according to your routine."
+        )
+
+    # Revision
+    if "revision" in user:
+
+        return (
+            "📝 REVISION TIPS\n\n"
+            "• Review regularly.\n"
+            "• Make short notes.\n"
+            "• Practice important questions.\n"
+            "• Explain concepts in your own words.\n"
+            "• Test yourself without looking at answers."
+        )
+
+    # Exams
+    if "exam" in user:
+
+        return (
+            "🎓 EXAM PREPARATION TIPS\n\n"
+            "• Start preparing early.\n"
+            "• Divide the syllabus into smaller topics.\n"
+            "• Practice previous questions.\n"
+            "• Revise important concepts.\n"
+            "• Take regular breaks.\n"
+            "• Stay calm and focus on one topic at a time."
+        )
+
+    return None
+
+
+# ============================================================
+# MAIN BOT RESPONSE
+# ============================================================
+
+def bot_response(user):
+
+    global current_service
+
+    user_lower = user.lower().strip()
+
+    # --------------------------------------------------------
+    # BYE
+    # --------------------------------------------------------
+
+    if user_lower in [
+        "bye",
+        "goodbye",
+        "see you",
+        "bye bye"
+    ]:
+
+        return "👋 Bye! Nice to meet you. Have a good day!"
+
+    # --------------------------------------------------------
+    # TIME / DATE
+    # --------------------------------------------------------
+
+    if (
+        "time" in user_lower
+        or "date" in user_lower
+        or "what day" in user_lower
+        or "which day" in user_lower
+    ):
+
+        date, day, time = get_datetime()
+
+        return (
+            "🕐 CURRENT DATE & TIME\n\n"
+            f"📅 Date : {date}\n"
+            f"📆 Day  : {day}\n"
+            f"⏰ Time : {time}"
+        )
+
+    # --------------------------------------------------------
+    # SMART Q&A
+    # --------------------------------------------------------
+
+    if current_service == "Smart Q&A":
+
+        answer = smart_qa(user_lower)
+
+        if answer:
+            return answer
+
+    # --------------------------------------------------------
+    # INFORMATION FINDER
+    # --------------------------------------------------------
+
+    if current_service == "Information Finder":
+
+        answer = information_response(user_lower)
+
+        if answer:
+            return answer
+
+    # --------------------------------------------------------
+    # STUDY HELPER
+    # --------------------------------------------------------
+
+    if current_service == "Study Helper":
+
+        answer = study_response(user_lower)
+
+        if answer:
+            return answer
+
+    # --------------------------------------------------------
+    # GENERAL CHAT
+    # --------------------------------------------------------
+
+    if current_service == "General Chat":
+
+        answer = general_response(user_lower)
+
+        if answer:
+            return answer
+
+    # --------------------------------------------------------
+    # COMMON GREETING
+    # --------------------------------------------------------
+
+    if user_lower in [
+        "hi",
+        "hello",
+        "hey",
+        "hii",
+        "hlo",
+        "hai"
+    ]:
+
+        return random.choice([
+            "Hello! 😊",
+            "Hi there! 👋",
+            "Hey! 🤖 Nice to chat with you!"
+        ])
+
+    # --------------------------------------------------------
+    # HOW ARE YOU
+    # --------------------------------------------------------
+
+    if "how are you" in user_lower:
+
+        return (
+            "😊 I'm doing great!\n"
+            "Thanks for asking!"
+        )
+
+    # --------------------------------------------------------
+    # THANK YOU
+    # --------------------------------------------------------
+
+    if (
+        "thank you" in user_lower
+        or "thanks" in user_lower
+    ):
+
+        return random.choice([
+            "😊 You're welcome!",
+            "✨ Happy to help!",
+            "🤖 Anytime!"
+        ])
+
+    # --------------------------------------------------------
+    # PYTHON
+    # --------------------------------------------------------
+
+    if "python" in user_lower:
+
+        return (
+            "🐍 PYTHON\n\n"
+            "Python is a popular programming language "
+            "used for automation, web development, "
+            "data analysis, AI, and many other applications."
+        )
+
+    # --------------------------------------------------------
+    # AI
+    # --------------------------------------------------------
+
+    if (
+        user_lower == "ai"
+        or "artificial intelligence" in user_lower
+    ):
+
+        return (
+            "🤖 AI stands for Artificial Intelligence.\n\n"
+            "It enables computers to perform tasks that "
+            "normally require human intelligence.\n\n"
+            "Try asking me: 'Tell me about AI'."
+        )
+
+    # --------------------------------------------------------
+    # JOKE
+    # --------------------------------------------------------
+
+    if (
+        "joke" in user_lower
+        or "funny" in user_lower
+    ):
+
+        return random.choice([
+            "😂 Why do programmers prefer dark mode? "
+            "Because light attracts bugs!",
+            "😄 Why did the computer go to the doctor? "
+            "Because it had a virus!",
+            "🤣 Programmers love coffee because they need Java!"
+        ])
+
+    # --------------------------------------------------------
+    # DEFAULT
+    # --------------------------------------------------------
+
+    if current_service == "Smart Q&A":
+
+        return (
+            "🧠 Ask me an AI question.\n\n"
+            "Try:\n"
+            "• Tell me about AI\n"
+            "• What is an AI assistant?\n"
+            "• How can I use AI?\n"
+            "• What are the benefits of AI?"
+        )
+
+    if current_service == "Information Finder":
+
+        return (
+            "🔎 What would you like to explore?\n\n"
+            "Try asking about:\n"
+            "🌿 Nature\n"
+            "🎓 Education\n"
+            "📚 Books\n"
+            "🛕 Temples\n"
+            "🌍 Places"
+        )
+
+    if current_service == "Study Helper":
+
+        return (
+            "📚 I can help you with:\n\n"
+            "💡 Study tips\n"
+            "🎯 Concentration\n"
+            "🗓️ Study timetable\n"
+            "📝 Revision\n"
+            "🎓 Exam preparation"
+        )
+
+    return (
+        "🤔 That's interesting!\n\n"
+        "Tell me more about it, or choose a service "
+        "from the left side."
+    )
 
 
 # ============================================================
@@ -454,264 +797,80 @@ def show_personal_animation(name):
 
 def show_typing():
 
-    chat.config(
-        state=tk.NORMAL
-    )
+    chat.config(state=tk.NORMAL)
 
     chat.insert(
         tk.END,
-        "\n  🤖 Bot is typing...\n",
+        "\n🤖 SmartBot is typing...\n",
         "typing"
     )
 
-    chat.config(
-        state=tk.DISABLED
-    )
+    chat.config(state=tk.DISABLED)
 
-    chat.see(
-        tk.END
-    )
+    chat.see(tk.END)
 
-
-# ============================================================
-# REMOVE TYPING
-# ============================================================
 
 def remove_typing():
 
-    chat.config(
-        state=tk.NORMAL
-    )
+    chat.config(state=tk.NORMAL)
 
     content = chat.get(
         "1.0",
         tk.END
     )
 
-    if "🤖 Bot is typing..." in content:
-
-        position = content.rfind(
-            "\n  🤖 Bot is typing..."
-        )
-
-        try:
-
-            start_index = f"1.0 + {position} chars"
-
-            chat.delete(
-                start_index,
-                tk.END
-            )
-
-        except:
-            pass
-
-    chat.config(
-        state=tk.DISABLED
+    position = content.rfind(
+        "\n🤖 SmartBot is typing..."
     )
 
+    if position != -1:
 
-# ============================================================
-# BOT RESPONSES
-# ============================================================
+        start = f"1.0 + {position} chars"
 
-def bot_response(user):
-
-    user = user.lower().strip()
-
-    responses = {
-
-        "hello": [
-            "👋 Hi! Welcome to Smart Chatbot!",
-            "😊 Hello! How can I help you?",
-            "🤖 Hey there! Nice to meet you!"
-        ],
-
-        "hi": [
-            "👋 Hi!",
-            "😊 Hello!",
-            "🤖 Hey! How are you?"
-        ],
-
-        "hey": [
-            "👋 Hey! What's up?",
-            "😊 Hello there!"
-        ],
-
-        "how are you": [
-            "😊 I'm doing great! Thanks for asking.",
-            "🤖 I'm fine and ready to chat!",
-            "✨ I'm doing awesome!"
-        ],
-
-        "what is your name": [
-            "🤖 My name is SmartBot!",
-            "😊 You can call me SmartBot."
-        ],
-
-        "who are you": [
-            "🤖 I'm a Python Tkinter chatbot.",
-            "✨ I'm your friendly SmartBot!"
-        ],
-
-        "help": [
-            "💡 You can ask me about Python, AI, college, projects, or internships."
-        ],
-
-        "thank you": [
-            "😊 You're welcome!",
-            "✨ Anytime!",
-            "🤖 Happy to help!"
-        ],
-
-        "thanks": [
-            "😊 You're welcome!",
-            "✨ No problem!"
-        ],
-
-        "good morning": [
-            "🌞 Good morning! Have a wonderful day!"
-        ],
-
-        "good night": [
-            "🌙 Good night! Sleep well!"
-        ],
-
-        "bye": [
-            "👋 Goodbye! Have a wonderful day!",
-            "😊 Bye! See you again!",
-            "✨ Take care!"
-        ]
-    }
-
-    if user in responses:
-
-        return random.choice(
-            responses[user]
+        chat.delete(
+            start,
+            tk.END
         )
 
-    # Python
-    if "python" in user:
-
-        return (
-            "🐍 Python is a popular programming language "
-            "known for its simplicity and readability."
-        )
-
-    # AI
-    if (
-        "ai" in user
-        or
-        "artificial intelligence" in user
-    ):
-
-        return (
-            "🤖 Artificial Intelligence allows computers "
-            "to perform tasks that normally require human intelligence."
-        )
-
-    # College
-    if "college" in user:
-
-        return (
-            "🎓 College is a great place to learn, "
-            "build projects, and develop your skills!"
-        )
-
-    # Project
-    if "project" in user:
-
-        return (
-            "💻 Building projects is one of the best ways "
-            "to improve your programming skills."
-        )
-
-    # Internship
-    if "internship" in user:
-
-        return (
-            "🚀 Internships are a great way to gain "
-            "practical experience."
-        )
-
-    return (
-        "🤔 I'm still learning!\n"
-        "💡 Try asking me about Python, AI, "
-        "projects, college, or internships."
-    )
+    chat.config(state=tk.DISABLED)
 
 
 # ============================================================
-# REPLY
+# SEND MESSAGE
 # ============================================================
 
 def reply(event=None):
-
-    global user_name
 
     user = entry.get().strip()
 
     if user == "":
         return
 
-    # Display user message
     add_message(
         "You",
         user
     )
 
-    # Clear input
     entry.delete(
         0,
         tk.END
     )
 
-    # ========================================================
-    # NAME DETECTION
-    # ========================================================
-
-    detected_name = detect_name(
-        user
-    )
-
-    if detected_name:
-
-        user_name = detected_name
-
-        # Open complete full-screen animation
-        show_personal_animation(
-            user_name
-        )
-
-        return
-
-    # ========================================================
-    # NORMAL CHAT
-    # ========================================================
-
-    response = bot_response(
-        user
-    )
+    response = bot_response(user)
 
     show_typing()
 
     root.after(
-        800,
-        lambda: finish_reply(
-            response,
-            user.lower()
-        )
+        700,
+        lambda: finish_reply(response)
     )
 
 
 # ============================================================
-# FINISH REPLY
+# FINISH RESPONSE
 # ============================================================
 
-def finish_reply(
-    response,
-    user
-):
+def finish_reply(response):
 
     remove_typing()
 
@@ -720,10 +879,14 @@ def finish_reply(
         response
     )
 
-    if user == "bye":
+    # ========================================================
+    # CLOSE CHATBOT AFTER BYE
+    # ========================================================
+
+    if response == "👋 Bye! Nice to meet you. Have a good day!":
 
         root.after(
-            1800,
+            2500,
             root.destroy
         )
 
@@ -734,169 +897,690 @@ def finish_reply(
 
 def clear_chat():
 
-    global user_name
-
-    user_name = None
-
-    chat.config(
-        state=tk.NORMAL
-    )
+    chat.config(state=tk.NORMAL)
 
     chat.delete(
         "1.0",
         tk.END
     )
 
-    chat.insert(
-        tk.END,
-        "\n  🤖 Bot  •  " +
-        get_time() +
-        "\n  Hello! 👋 I'm SmartBot.\n\n"
-        "  💬 Tell me your name to get started!\n\n"
-        "  Example:\n"
-        "  My name is Saraswati\n",
-        "bot_msg"
+    chat.config(state=tk.DISABLED)
+
+    add_message(
+        "Bot",
+        "Hi! 👋 I'm SmartBot."
     )
 
-    chat.config(
-        state=tk.DISABLED
+    add_message(
+        "Bot",
+        "How can I help you today?"
     )
 
 
 # ============================================================
-# DARK MODE
+# START SERVICE
 # ============================================================
 
-def toggle_theme():
+def start_service(service):
 
-    if root.cget("bg") == "#EAF2F8":
+    global current_service
 
-        root.configure(
-            bg="#121212"
+    current_service = service
+
+    clear_chat()
+
+    # --------------------------------------------------------
+    # GENERAL CHAT
+    # --------------------------------------------------------
+
+    if service == "General Chat":
+
+        add_message(
+            "Bot",
+            "💬 Welcome to General Chat!"
         )
 
-        frame.configure(
-            bg="#121212"
+        add_message(
+            "Bot",
+            "Hi! 👋 What's your name?"
         )
 
-        bottom_frame.configure(
-            bg="#121212"
+        add_message(
+            "Bot",
+            "What are you doing today?"
         )
 
-        chat.configure(
-            bg="#1E1E1E",
-            fg="white"
+        add_message(
+            "Bot",
+            "How are your studies going? 📚"
         )
 
-        entry.configure(
-            bg="#2C2C2C",
-            fg="white",
-            insertbackground="white"
+        add_message(
+            "Bot",
+            "Would you like to learn about AI? 🤖"
         )
 
-        theme_button.configure(
-            text="☀ Light"
+    # --------------------------------------------------------
+    # SMART Q&A
+    # --------------------------------------------------------
+
+    elif service == "Smart Q&A":
+
+        add_message(
+            "Bot",
+            "🧠 Welcome to Smart Q&A!"
         )
 
-    else:
-
-        root.configure(
-            bg="#EAF2F8"
+        add_message(
+            "Bot",
+            "Did you know about AI assistants? 🤖"
         )
 
-        frame.configure(
-            bg="#EAF2F8"
+        add_message(
+            "Bot",
+            "Ask me questions like:\n\n"
+            "• Tell me about AI\n"
+            "• What is an AI assistant?\n"
+            "• How can I use AI?\n"
+            "• What are the benefits of AI?"
         )
 
-        bottom_frame.configure(
-            bg="#EAF2F8"
+    # --------------------------------------------------------
+    # INFORMATION FINDER
+    # --------------------------------------------------------
+
+    elif service == "Information Finder":
+
+        add_message(
+            "Bot",
+            "🔎 Welcome to Information Finder!"
         )
 
-        chat.configure(
-            bg="white",
-            fg="black"
+        add_message(
+            "Bot",
+            "What would you like to explore?"
         )
 
-        entry.configure(
-            bg="white",
-            fg="black",
-            insertbackground="black"
+        add_message(
+            "Bot",
+            "🌿 Nature\n"
+            "🎓 Education\n"
+            "📚 Books\n"
+            "🛕 Temples\n"
+            "🌍 Places\n"
+            "💡 General Knowledge"
         )
 
-        theme_button.configure(
-            text="🌙 Dark"
+    # --------------------------------------------------------
+    # TIME AND DATE
+    # --------------------------------------------------------
+
+    elif service == "Time & Date":
+
+        date, day, time = get_datetime()
+
+        add_message(
+            "Bot",
+            "🕐 CURRENT INFORMATION\n\n"
+            f"📅 Date : {date}\n"
+            f"📆 Day  : {day}\n"
+            f"⏰ Time : {time}"
         )
+
+    # --------------------------------------------------------
+    # STUDY HELPER
+    # --------------------------------------------------------
+
+    elif service == "Study Helper":
+
+        add_message(
+            "Bot",
+            "📚 Welcome to Study Helper!"
+        )
+
+        add_message(
+            "Bot",
+            "Here are some smart study tips:"
+        )
+
+        add_message(
+            "Bot",
+            "1️⃣ Make a daily timetable.\n"
+            "2️⃣ Set small study goals.\n"
+            "3️⃣ Take short breaks.\n"
+            "4️⃣ Revise regularly.\n"
+            "5️⃣ Practice questions.\n"
+            "6️⃣ Keep distractions away."
+        )
+
+        add_message(
+            "Bot",
+            "You can ask me about concentration, "
+            "revision, exams, or study timetables."
+        )
+
+    # --------------------------------------------------------
+    # CODE ASSISTANT
+    # --------------------------------------------------------
+
+    elif service == "Code Assistant":
+
+        add_message(
+            "Bot",
+            "💻 Welcome to Code Assistant!"
+        )
+
+        add_message(
+            "Bot",
+            "Ask me about Python, programming concepts, "
+            "loops, functions, lists, dictionaries, "
+            "errors, or coding projects."
+        )
+
+    # --------------------------------------------------------
+    # TRANSLATION
+    # --------------------------------------------------------
+
+    elif service == "Translation":
+
+        add_message(
+            "Bot",
+            "🌐 Welcome to Translation!"
+        )
+
+        add_message(
+            "Bot",
+            "Send me text that you want help understanding "
+            "or translating."
+        )
+
+    # --------------------------------------------------------
+    # REMINDER
+    # --------------------------------------------------------
+
+    elif service == "Reminder":
+
+        add_message(
+            "Bot",
+            "⏰ Welcome to Reminder!"
+        )
+
+        add_message(
+            "Bot",
+            "I can help you organize:\n\n"
+            "📚 Study time\n"
+            "💻 Project work\n"
+            "📝 Assignment work\n"
+            "🎯 Daily goals"
+        )
+
+    # --------------------------------------------------------
+    # FUN ZONE
+    # --------------------------------------------------------
+
+    elif service == "Fun Zone":
+
+        add_message(
+            "Bot",
+            "🎮 Welcome to Fun Zone!"
+        )
+
+        add_message(
+            "Bot",
+            "Ask me for a joke, riddle, quiz, "
+            "or interesting fact! 😄"
+        )
+
+    # --------------------------------------------------------
+    # FEEDBACK
+    # --------------------------------------------------------
+
+    elif service == "Feedback":
+
+        add_message(
+            "Bot",
+            "⭐ FEEDBACK\n\n"
+            "Tell me what you like about Smart Chatbot "
+            "or what you would like to improve."
+        )
+
+    entry.focus()
+
+
+# ============================================================
+# SERVICE BUTTON
+# ============================================================
+
+def create_service(
+    parent,
+    icon,
+    name,
+    description
+):
+
+    button = tk.Frame(
+        parent,
+        bg=CARD,
+        height=55,
+        cursor="hand2"
+    )
+
+    button.pack(
+        fill="x",
+        padx=12,
+        pady=3
+    )
+
+    button.pack_propagate(False)
+
+    icon_label = tk.Label(
+        button,
+        text=icon,
+        font=("Arial", 16),
+        bg=CARD,
+        fg=LIGHT_BLUE,
+        width=3
+    )
+
+    icon_label.pack(
+        side=tk.LEFT,
+        padx=(7, 3)
+    )
+
+    text_frame = tk.Frame(
+        button,
+        bg=CARD
+    )
+
+    text_frame.pack(
+        side=tk.LEFT,
+        fill="both",
+        expand=True,
+        pady=5
+    )
+
+    name_label = tk.Label(
+        text_frame,
+        text=name,
+        font=("Arial", 9, "bold"),
+        bg=CARD,
+        fg=WHITE,
+        anchor="w"
+    )
+
+    name_label.pack(
+        fill="x"
+    )
+
+    desc_label = tk.Label(
+        text_frame,
+        text=description,
+        font=("Arial", 7),
+        bg=CARD,
+        fg=MUTED,
+        anchor="w"
+    )
+
+    desc_label.pack(
+        fill="x"
+    )
+
+    def clicked(event=None):
+
+        start_service(name)
+
+    for widget in [
+        button,
+        icon_label,
+        text_frame,
+        name_label,
+        desc_label
+    ]:
+
+        widget.bind(
+            "<Button-1>",
+            clicked
+        )
+
+
+# ============================================================
+# MAIN LAYOUT
+# ============================================================
+
+main = tk.Frame(
+    root,
+    bg=BG
+)
+
+main.pack(
+    fill="both",
+    expand=True
+)
+
+
+# ============================================================
+# LEFT SIDEBAR
+# ============================================================
+
+sidebar = tk.Frame(
+    main,
+    bg=SIDEBAR,
+    width=300
+)
+
+sidebar.pack(
+    side=tk.LEFT,
+    fill="y"
+)
+
+sidebar.pack_propagate(False)
+
+
+# ============================================================
+# ROBOT
+# ============================================================
+
+robot_canvas = tk.Canvas(
+    sidebar,
+    width=280,
+    height=250,
+    bg=SIDEBAR,
+    highlightthickness=0
+)
+
+robot_canvas.pack(
+    pady=(10, 0)
+)
+
+draw_robot(robot_canvas)
+
+
+# ============================================================
+# CHATBOT NAME
+# ============================================================
+
+chatbot_name = tk.Label(
+    sidebar,
+    text="SMART CHATBOT",
+    font=("Arial", 20, "bold"),
+    bg=SIDEBAR,
+    fg=WHITE
+)
+
+chatbot_name.pack()
+
+
+tagline = tk.Label(
+    sidebar,
+    text="Your Intelligent AI Assistant",
+    font=("Arial", 10),
+    bg=SIDEBAR,
+    fg=CYAN
+)
+
+tagline.pack(
+    pady=(2, 10)
+)
+
+
+# ============================================================
+# HOME BUTTON
+# ============================================================
+
+home_button = tk.Button(
+    sidebar,
+    text="⌂   Home",
+    font=("Arial", 11, "bold"),
+    bg=BLUE,
+    fg=WHITE,
+    activebackground="#0076D7",
+    activeforeground=WHITE,
+    relief=tk.FLAT,
+    cursor="hand2",
+    anchor="w",
+    padx=20,
+    pady=8
+)
+
+home_button.pack(
+    fill="x",
+    padx=15,
+    pady=(0, 8)
+)
+
+
+def home():
+
+    global current_service
+
+    current_service = "General Chat"
+
+    clear_chat()
+
+    add_message(
+        "Bot",
+        "Hi! 👋 What's your name?"
+    )
+
+    add_message(
+        "Bot",
+        "What are you doing today?"
+    )
+
+    add_message(
+        "Bot",
+        "How are your studies going? 📚"
+    )
+
+    add_message(
+        "Bot",
+        "Would you like to learn about AI? 🤖"
+    )
+
+
+home_button.config(
+    command=home
+)
+
+
+# ============================================================
+# SERVICES TITLE
+# ============================================================
+
+services_title = tk.Label(
+    sidebar,
+    text="━━  OUR SERVICES  ━━",
+    font=("Arial", 10, "bold"),
+    bg=SIDEBAR,
+    fg=CYAN
+)
+
+services_title.pack(
+    pady=(0, 5)
+)
+
+
+# ============================================================
+# SERVICES
+# ============================================================
+
+create_service(
+    sidebar,
+    "💬",
+    "General Chat",
+    "Friendly everyday conversation"
+)
+
+create_service(
+    sidebar,
+    "🧠",
+    "Smart Q&A",
+    "AI questions and answers"
+)
+
+create_service(
+    sidebar,
+    "🔎",
+    "Information Finder",
+    "Nature, education, books & more"
+)
+
+create_service(
+    sidebar,
+    "🕐",
+    "Time & Date",
+    "Current time, date & day"
+)
+
+create_service(
+    sidebar,
+    "📚",
+    "Study Helper",
+    "Study tips & exam preparation"
+)
+
+create_service(
+    sidebar,
+    "💻",
+    "Code Assistant",
+    "Programming & coding help"
+)
+
+create_service(
+    sidebar,
+    "🌐",
+    "Translation",
+    "Language assistance"
+)
+
+create_service(
+    sidebar,
+    "⏰",
+    "Reminder",
+    "Tasks & study planning"
+)
+
+create_service(
+    sidebar,
+    "🎮",
+    "Fun Zone",
+    "Jokes, riddles & quizzes"
+)
+
+create_service(
+    sidebar,
+    "⭐",
+    "Feedback",
+    "Share your feedback"
+)
+
+
+# ============================================================
+# RIGHT CONTENT
+# ============================================================
+
+content = tk.Frame(
+    main,
+    bg=BG
+)
+
+content.pack(
+    side=tk.LEFT,
+    fill="both",
+    expand=True,
+    padx=(10, 15),
+    pady=15
+)
 
 
 # ============================================================
 # HEADER
 # ============================================================
 
-header = tk.Frame(
-    root,
-    bg=HEADER,
-    height=75
+top_header = tk.Frame(
+    content,
+    bg=PANEL,
+    height=95
 )
 
-header.pack(
+top_header.pack(
     fill="x"
 )
 
-title = tk.Label(
-    header,
-    text="🤖 Smart Chatbot",
+top_header.pack_propagate(False)
+
+
+welcome_label = tk.Label(
+    top_header,
+    text="🤖  Welcome to Smart Chatbot",
     font=("Arial", 22, "bold"),
-    bg=HEADER,
-    fg="white"
+    bg=PANEL,
+    fg=CYAN,
+    anchor="w"
 )
 
-title.pack(
-    pady=(10, 0)
+welcome_label.pack(
+    padx=22,
+    pady=(12, 2),
+    anchor="w"
 )
 
-subtitle = tk.Label(
-    header,
-    text="Python • Tkinter • AI Style Chat",
+
+welcome_subtitle = tk.Label(
+    top_header,
+    text="Your friendly AI-style assistant • Ask • Learn • Explore",
     font=("Arial", 10),
-    bg=HEADER,
-    fg="#D6EAF8"
+    bg=PANEL,
+    fg=MUTED,
+    anchor="w"
 )
 
-subtitle.pack()
+welcome_subtitle.pack(
+    padx=25,
+    anchor="w"
+)
+
+
+clock_label = tk.Label(
+    top_header,
+    text="",
+    font=("Arial", 9, "bold"),
+    bg=PANEL,
+    fg=LIGHT_BLUE
+)
+
+clock_label.pack(
+    padx=25,
+    pady=7,
+    anchor="w"
+)
 
 
 # ============================================================
-# CHAT FRAME
+# CHAT PANEL
 # ============================================================
 
-frame = tk.Frame(
-    root,
-    bg=BG
+chat_panel = tk.Frame(
+    content,
+    bg=PANEL
 )
 
-frame.pack(
+chat_panel.pack(
     fill="both",
     expand=True,
-    padx=15,
-    pady=15
+    pady=(10, 10)
 )
 
 
-# ============================================================
-# CHAT BOX
-# ============================================================
-
 chat = tk.Text(
-    frame,
-    width=65,
-    height=22,
+    chat_panel,
     font=("Calibri", 12),
-    bg=WHITE,
-    fg=DARK,
+    bg=PANEL,
+    fg=TEXT,
     wrap=tk.WORD,
     relief=tk.FLAT,
-    padx=15,
-    pady=10,
+    padx=20,
+    pady=15,
     state=tk.DISABLED
 )
 
@@ -912,7 +1596,7 @@ chat.pack(
 # ============================================================
 
 scrollbar = tk.Scrollbar(
-    frame,
+    chat_panel,
     command=chat.yview
 )
 
@@ -927,95 +1611,73 @@ chat.configure(
 
 
 # ============================================================
-# TEXT STYLES
+# CHAT TEXT STYLES
 # ============================================================
 
 chat.tag_config(
-    "user_name",
-    foreground=USER_COLOR,
-    font=("Calibri", 11, "bold")
+    "user_header",
+    foreground=LIGHT_BLUE,
+    font=("Calibri", 10, "bold")
 )
 
 chat.tag_config(
-    "user_msg",
-    foreground=DARK,
+    "user_message",
+    foreground=WHITE,
     font=("Calibri", 12)
 )
 
 chat.tag_config(
-    "bot_name",
-    foreground=BOT_COLOR,
-    font=("Calibri", 11, "bold")
+    "bot_header",
+    foreground=CYAN,
+    font=("Calibri", 10, "bold")
 )
 
 chat.tag_config(
-    "bot_msg",
-    foreground=DARK,
+    "bot_message",
+    foreground=TEXT,
     font=("Calibri", 12)
 )
 
 chat.tag_config(
     "typing",
-    foreground="#888888",
-    font=("Calibri", 11, "italic")
+    foreground=MUTED,
+    font=("Calibri", 10, "italic")
 )
 
 
 # ============================================================
-# FIRST MESSAGE
+# INPUT AREA
 # ============================================================
 
-chat.config(
-    state=tk.NORMAL
+input_frame = tk.Frame(
+    content,
+    bg=PANEL,
+    height=65
 )
 
-chat.insert(
-    tk.END,
-    "\n  🤖 Bot  •  " +
-    get_time() +
-    "\n  Hello! 👋 I'm SmartBot.\n\n"
-    "  💬 Tell me your name to get started!\n\n"
-    "  Example:\n"
-    "  My name is Saraswati\n",
-    "bot_msg"
+input_frame.pack(
+    fill="x"
 )
 
-chat.config(
-    state=tk.DISABLED
-)
+input_frame.pack_propagate(False)
 
-
-# ============================================================
-# BOTTOM FRAME
-# ============================================================
-
-bottom_frame = tk.Frame(
-    root,
-    bg=BG
-)
-
-bottom_frame.pack(
-    fill="x",
-    padx=15,
-    pady=(0, 15)
-)
-
-
-# ============================================================
-# INPUT
-# ============================================================
 
 entry = tk.Entry(
-    bottom_frame,
-    width=38,
-    font=("Arial", 13),
+    input_frame,
+    font=("Arial", 12),
+    bg=CARD,
+    fg=WHITE,
+    insertbackground=WHITE,
     relief=tk.FLAT,
-    bd=5
+    bd=0
 )
 
 entry.pack(
     side=tk.LEFT,
-    padx=(0, 8),
+    fill="both",
+    expand=True,
+    padx=(15, 8),
+    pady=10,
     ipady=8
 )
 
@@ -1024,23 +1686,24 @@ entry.pack(
 # SEND BUTTON
 # ============================================================
 
-send = tk.Button(
-    bottom_frame,
-    text="Send 🚀",
-    command=reply,
-    bg="#43A047",
-    fg="white",
-    activebackground="#2E7D32",
-    activeforeground="white",
+send_button = tk.Button(
+    input_frame,
+    text="➤  Send",
     font=("Arial", 11, "bold"),
+    bg=BLUE,
+    fg=WHITE,
+    activebackground="#0076D7",
+    activeforeground=WHITE,
     relief=tk.FLAT,
     cursor="hand2",
-    padx=15,
-    pady=8
+    padx=20,
+    command=reply
 )
 
-send.pack(
-    side=tk.LEFT
+send_button.pack(
+    side=tk.LEFT,
+    padx=(0, 8),
+    pady=10
 )
 
 
@@ -1048,47 +1711,24 @@ send.pack(
 # CLEAR BUTTON
 # ============================================================
 
-clear = tk.Button(
-    bottom_frame,
-    text="Clear 🧹",
-    command=clear_chat,
-    bg="#E53935",
-    fg="white",
-    activebackground="#C62828",
-    activeforeground="white",
+clear_button = tk.Button(
+    input_frame,
+    text="Clear",
     font=("Arial", 10, "bold"),
+    bg=CARD2,
+    fg=TEXT,
+    activebackground=CARD,
+    activeforeground=WHITE,
     relief=tk.FLAT,
     cursor="hand2",
-    padx=10,
-    pady=8
+    padx=12,
+    command=clear_chat
 )
 
-clear.pack(
+clear_button.pack(
     side=tk.LEFT,
-    padx=5
-)
-
-
-# ============================================================
-# DARK MODE
-# ============================================================
-
-theme_button = tk.Button(
-    bottom_frame,
-    text="🌙 Dark",
-    command=toggle_theme,
-    bg="#546E7A",
-    fg="white",
-    activebackground="#37474F",
-    font=("Arial", 10, "bold"),
-    relief=tk.FLAT,
-    cursor="hand2",
-    padx=10,
-    pady=8
-)
-
-theme_button.pack(
-    side=tk.LEFT
+    padx=(0, 15),
+    pady=10
 )
 
 
@@ -1101,11 +1741,49 @@ entry.bind(
     reply
 )
 
+
+# ============================================================
+# INITIAL CHAT
+# ============================================================
+
+add_message(
+    "Bot",
+    "👋 Welcome to Smart Chatbot!"
+)
+
+add_message(
+    "Bot",
+    "Hi! What's your name?"
+)
+
+add_message(
+    "Bot",
+    "What are you doing today?"
+
+)
+
+add_message(
+    "Bot",
+    "How are your studies going? 📚"
+)
+
+add_message(
+    "Bot",
+    "Would you like to learn about AI? 🤖"
+)
+
+
+# ============================================================
+# START CLOCK
+# ============================================================
+
+update_clock()
+
 entry.focus()
 
 
 # ============================================================
-# START
+# RUN CHATBOT
 # ============================================================
 
 root.mainloop()
