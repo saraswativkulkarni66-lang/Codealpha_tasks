@@ -1,22 +1,12 @@
-\#TASK 2 Hangman Game
-
-
+#TASK 1 (Hangman Game)
 
 \## Project Description
 
-
-
 This project is a simple Hangman Game developed using Python as part of my CodeAlpha internship.
-
-
 
 The game uses predefined words and allows the player to guess the hidden word one letter at a time. The player receives feedback for correct and incorrect guesses and continues playing until the word is successfully guessed.
 
-
-
 \## Features
-
-
 
 \- Simple and interactive Hangman game
 
@@ -28,19 +18,11 @@ The game uses predefined words and allows the player to guess the hidden word on
 
 \- Allows the player to play with another word
 
-
-
 \## Technologies Used
-
-
 
 \- Python
 
-
-
 \## Key Concepts Used
-
-
 
 \- Lists
 
@@ -56,17 +38,10 @@ The game uses predefined words and allows the player to guess the hidden word on
 
 \- Random selection
 
-
-
 \## How to Run
-
-
 
 Run the following command:
 
-
-
 ```bash
-
-python hangama\_game.py
+python hangama_game.py
 
